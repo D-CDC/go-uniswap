@@ -5,7 +5,7 @@ import (
 	"ethereum/contract/contracts/backends"
 	"ethereum/contract/contracts/deployUniswap/TokenE"
 	tokenf "ethereum/contract/contracts/deployUniswap/TokenF"
-	"ethereum/contract/contracts/deployUniswap/tokenm"
+	"ethereum/contract/contracts/deployUniswap/tokenc"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -51,18 +51,18 @@ func TestDeployUniswap(t *testing.T) {
 	if err != nil {
 		t.Fatalf("can't DeployContract Factory: %v", err)
 	}
-	mapT, _, _, err := tokenm.DeployTokenm(transactOpts, contractBackend)
+	cdcT, _, _, err := tokenc.DeployTokenc(transactOpts, contractBackend)
 	if err != nil {
 		t.Fatalf("can't DeployContract: %v", err)
 	}
-	mapTran, err := tokenm.NewTokenm(mapT, contractBackend)
+	cdcTran, err := tokenc.NewTokenc(cdcT, contractBackend)
 	if err != nil {
 		t.Fatalf("can't NewContract: %v", err)
 	}
 
 	contractBackend.Commit()
 
-	balance, err := mapTran.BalanceOf(nil, addr)
+	balance, err := cdcTran.BalanceOf(nil, addr)
 	if err != nil {
 		log.Error("Failed to retrieve token ", "name: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestDeployUniswap(t *testing.T) {
 	if err != nil {
 		t.Fatalf("can't DeployContract: %v", err)
 	}
-	_, err = mapTran.Approve(transactOpts, unisWapAddr, new(big.Int).SetUint64(1000000000000000000))
+	_, err = cdcTran.Approve(transactOpts, unisWapAddr, new(big.Int).SetUint64(1000000000000000000))
 	if err != nil {
 		t.Fatalf("can't NewContract: %v", err)
 	}
@@ -86,14 +86,14 @@ func TestDeployUniswap(t *testing.T) {
 	tik := new(big.Int).SetUint64(10000000000000000)
 	tik1 := new(big.Int).SetUint64(1000000000000)
 
-	balance, err = mapTran.Allowance(nil, addr, unisWapAddr)
-	name, err := mapTran.Name(nil)
+	balance, err = cdcTran.Allowance(nil, addr, unisWapAddr)
+	name, err := cdcTran.Name(nil)
 	fmt.Println("balance ", balance, "name", name, " unisWapAddr ", unisWapAddr.String())
 	transactOpts.Value = new(big.Int).SetUint64(1000000000000000000)
-	fmt.Println(mapT.String(), " ", addr.String(), " fac ", fac.String(), " eth ", weth.String())
+	fmt.Println(cdcT.String(), " ", addr.String(), " fac ", fac.String(), " eth ", weth.String())
 	fmt.Println(hexutil.Encode(tik.Bytes()), " ", hexutil.Encode(tik1.Bytes()))
 	backends.SimulateDebug = false
-	_, err = ens.AddLiquidityETH(transactOpts, mapT, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
+	_, err = ens.AddLiquidityETH(transactOpts, cdcT, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
 	if err != nil {
 		t.Fatalf("can't NewContract AddLiquidityETH : %v", err)
 	}

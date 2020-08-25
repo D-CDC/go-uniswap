@@ -15,8 +15,8 @@ library SafeMath {
 
 contract map {
     using SafeMath for uint256;
-    string public constant name = "MarcoPolo Protocol";
-    string public constant symbol = "MAP";
+    string public constant name = "CDC Protocol";
+    string public constant symbol = "CDC";
     uint256 public constant decimals = 18;
     uint256 public constant totalSupply = 10000000000*10**decimals;
     mapping (address => uint256) private balances;
