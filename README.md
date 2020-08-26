@@ -17,9 +17,9 @@ abigen --bin=bin --abi=abi --pkg=token --out=Token.go
 ### Erc20
 主要测试`Approve`和`TransferFrom`
 ### Uniswap
-* 先部署`Weth`合约 在包`TokenE`
-* 部署`CDC`合约 在包`Tokenc`
-*  部署`工厂`合约 在包`TokenF`
+* 先部署`Weth`合约 在包`weth`
+* 部署`CDC`合约 在包`cdc`
+*  部署`工厂`合约 在包`factory`
 *  部署`V2Router`合约
 
 调用`V2Router`中`AddLiquidityETH`需要先`Approve`代币合约，然后调用可能成功。

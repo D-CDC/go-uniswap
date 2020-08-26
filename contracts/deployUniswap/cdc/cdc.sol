@@ -13,7 +13,7 @@ library SafeMath {
 }
 
 
-contract map {
+contract cdc {
     using SafeMath for uint256;
     string public constant name = "CDC Protocol";
     string public constant symbol = "CDC";
