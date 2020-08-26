@@ -23,3 +23,10 @@ abigen --bin=bin --abi=abi --pkg=token --out=Token.go
 *  部署`V2Router`合约
 
 调用`V2Router`中`AddLiquidityETH`需要先`Approve`代币合约，然后调用可能成功。
+
+### TestDeployUniswap
+本地测试用例，无需申请测试币
+### TestNode
+测试节点是否可用，打印常规信息
+### TestDialNode
+部署合约到节点，查询合约执行状态，成功才进行下一步部署
