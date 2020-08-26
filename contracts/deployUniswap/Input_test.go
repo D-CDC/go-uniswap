@@ -13,6 +13,18 @@ import (
 	"testing"
 )
 
+func TestPriv(t *testing.T) {
+	test, _ := crypto.HexToECDSA("647eeeb80193a47a02d31939af29efa006dbe6db45c8806af764c18b262bb90b")
+	mkey, _ := crypto.HexToECDSA("5e6ea3e3ba8a3d8940088247eda01a0909320f729ae3afcdc5747b2ced1ac460")
+	bftkey, _ := crypto.HexToECDSA("0260c952edc49037129d8cabbe4603d15185d83aa718291279937fb6db0fa7a2")
+
+	testAddrAddr := crypto.PubkeyToAddress(test.PublicKey)
+	add3Addr := crypto.PubkeyToAddress(mkey.PublicKey)
+	bftkeyAddr := crypto.PubkeyToAddress(bftkey.PublicKey)
+	fmt.Println(testAddrAddr.String(), " ", add3Addr.String())
+	fmt.Println(bftkeyAddr.String())
+}
+
 func TestNewToken(t *testing.T) {
 	sig := "_addLiquidity(address,address,uint,uint,uint,uint)"
 	id := crypto.Keccak256([]byte(sig))[:4]

@@ -1,6 +1,7 @@
 package token
 
 import (
+	"context"
 	"ethereum/contract/contracts/backends"
 	"ethereum/contract/contracts/deployUniswap/cdc"
 	factory "ethereum/contract/contracts/deployUniswap/factory"
@@ -14,23 +15,12 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 )
 
 func init() {
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(false))))
 }
-
-var (
-	key, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-	addr   = crypto.PubkeyToAddress(key.PublicKey)
-
-	key2, _  = crypto.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
-	key3, _  = crypto.HexToECDSA("49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee")
-	testAddr = crypto.PubkeyToAddress(key2.PublicKey)
-	add3     = crypto.PubkeyToAddress(key3.PublicKey)
-)
 
 func TestDeployUniswap(t *testing.T) {
 	contractBackend := backends.NewSimulatedBackend(core.GenesisAlloc{
@@ -94,4 +84,66 @@ func TestDeployUniswap(t *testing.T) {
 		t.Fatalf("can't NewContract AddLiquidityETH : %v", err)
 	}
 	contractBackend.Commit()
+}
+
+func TestNode(t *testing.T) {
+	url := "http://165.227.99.131:8545"
+	client, url := dialConn(url)
+	printBaseInfo(client, url)
+	PrintBalance(client, addr)
+
+	var err error
+	nonce, err = client.PendingNonceAt(context.Background(), addr)
+	if err != nil {
+		fmt.Println("PendingNonceAt", err)
+	}
+	fmt.Println("PendingNonceAt", nonce)
+
+	nonce, err = client.NonceAt(context.Background(), addr, nil)
+	if err != nil {
+		fmt.Println("PendingNonceAt", err)
+	}
+	fmt.Println(nonce)
+}
+
+func TestDialNode(t *testing.T) {
+	url := "http://165.227.99.131:8545"
+
+	client, url := dialConn(url)
+	printBaseInfo(client, url)
+	PrintBalance(client, addr)
+
+	contractBackend := backends.NewSimulatedBackend(core.GenesisAlloc{
+		addr:     {Balance: new(big.Int).SetUint64(10000000000000000000)},
+		testAddr: {Balance: big.NewInt(100000000000000)}},
+		100000000)
+	transactOpts := bind.NewKeyedTransactor(key)
+
+	basecontract, result := sendBaseContract(transactOpts, contractBackend, client)
+	if !result {
+		fmt.Println("sendBaseContract failed")
+		return
+	}
+	routercontract, result := sendRouterContract(transactOpts, contractBackend, client, basecontract)
+	if !result {
+		fmt.Println("sendBaseContract failed")
+		return
+	}
+
+	fmt.Println(" routerAddr ", routercontract.rethR.String())
+	tik := new(big.Int).SetUint64(10000000000000000)
+	tik1 := new(big.Int).SetUint64(1000000000000)
+	balance, err := basecontract.mapTran.Allowance(nil, addr, routercontract.fAddr)
+	name, err := basecontract.mapTran.Name(nil)
+	fmt.Println("balance ", balance, "name", name, " ", routercontract.fAddr.String(), "err", err)
+	transactOpts.Value = new(big.Int).SetUint64(1000000000000000000)
+	fmt.Println(basecontract.mapT.String(), " ", addr.String())
+	_, err = routercontract.RTran.AddLiquidityETH(transactOpts, basecontract.mapT, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
+	fmt.Println("simulate result", err)
+	contractBackend.Commit()
+
+	input := packInput(routerAbi, "addLiquidityETH", "addLiquidityETH", basecontract.mapTR, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
+	aHash := sendRouterTransaction(client, addr, routercontract.rethR, transactOpts.Value, key, input)
+	result, _ = getResult(client, aHash)
+	fmt.Println("over result", result)
 }
