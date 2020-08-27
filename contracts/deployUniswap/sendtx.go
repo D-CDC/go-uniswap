@@ -32,6 +32,7 @@ var (
 	testAddr     = crypto.PubkeyToAddress(key2.PublicKey)
 	nonce        uint64
 	routerAbi, _ = abi.JSON(strings.NewReader(TokenABI))
+	cdcAbi, _    = abi.JSON(strings.NewReader(cdc.TokenmABI))
 )
 
 func packInput(routerStaking abi.ABI, abiMethod, method string, params ...interface{}) []byte {
@@ -46,33 +47,50 @@ func printTest(a ...interface{}) {
 	log.Info("test", "SendTX", a)
 }
 
-func sendRouterContract(transactOpts *bind.TransactOpts, contractBackend *backends.SimulatedBackend, client *ethclient.Client, basecontract *BaseContract) (*RouterContract, bool) {
-	fAddr, _, _, err := DeployToken(transactOpts, contractBackend, basecontract.fac, basecontract.weth)
-	RTran, err := NewToken(fAddr, contractBackend)
+func simulateRouter(transactOpts *bind.TransactOpts, contractBackend *backends.SimulatedBackend, basecontract *BaseContract, routercontract *RouterContract) {
+	tik := new(big.Int).SetUint64(10000000000000000)
+	tik1 := new(big.Int).SetUint64(1000000000000)
+	balance, err := basecontract.mapTran.Allowance(nil, addr, routercontract.routerAddr)
+	name, err := basecontract.mapTran.Name(nil)
+	fmt.Println("balance ", balance, "name", name, " routerAddr ", routercontract.routerAddr.String(), " mapT ", basecontract.mapT.String(), "err", err)
+	transactOpts.Value = new(big.Int).SetUint64(1000000000000000000)
+	_, err = routercontract.RTran.AddLiquidityETH(transactOpts, basecontract.mapT, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
+	fmt.Println("simulate result", err, " routerAddr ", routercontract.rethR.String(), " addr ", addr.String())
+	contractBackend.Commit()
+}
 
-	_, err = basecontract.mapTran.Approve(transactOpts, fAddr, new(big.Int).SetUint64(1000000000000000000))
+func sendRouterContract(transactOpts *bind.TransactOpts, contractBackend *backends.SimulatedBackend, client *ethclient.Client, basecontract *BaseContract) (*RouterContract, bool) {
+	routerAddr, _, _, err := DeployToken(transactOpts, contractBackend, basecontract.fac, basecontract.weth)
+	RTran, err := NewToken(routerAddr, contractBackend)
+
+	_, err = basecontract.mapTran.Approve(transactOpts, routerAddr, new(big.Int).SetUint64(1000000000000000000))
 	contractBackend.Commit()
 	if err != nil {
-		fatallog.Fatal("sendRouterContract", err)
+		fmt.Println("sendRouterContract", err)
 	}
 	_, rtx, _, err := DeployToken(transactOpts, contractBackend, basecontract.facR, basecontract.wethR)
 
 	rHash := sendContractTransaction(client, rtx)
 	result, rethR := getResult(client, rHash)
 	if !result {
+		fmt.Println("sendRouterContract getResult", err)
 		return nil, false
 	}
 
-	atx, err := basecontract.mapTran.Approve(transactOpts, rethR, new(big.Int).SetUint64(1000000000000000000))
-	aHash := sendContractTransaction(client, atx)
+	input := packInput(cdcAbi, "approve", "approve", rethR, new(big.Int).SetUint64(1000000000000000000))
+	aHash := sendRouterTransaction(client, addr, basecontract.mapTR, transactOpts.Value, key, input)
 	result, _ = getResult(client, aHash)
-	return &RouterContract{fAddr: fAddr, RTran: RTran, rethR: rethR}, result
+	if !result {
+		fmt.Println("sendRouterContract getResult", err)
+		return nil, false
+	}
+	return &RouterContract{routerAddr: routerAddr, RTran: RTran, rethR: rethR}, result
 }
 
 type RouterContract struct {
-	fAddr common.Address
-	RTran *Token
-	rethR common.Address
+	routerAddr common.Address
+	RTran      *Token
+	rethR      common.Address
 }
 
 func sendBaseContract(transactOpts *bind.TransactOpts, contractBackend *backends.SimulatedBackend, client *ethclient.Client) (*BaseContract, bool) {
@@ -302,7 +320,7 @@ func PrintBalance(conn *ethclient.Client, from common.Address) {
 	fbalance.SetString(balance.String())
 	trueValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
 
-	fmt.Println("Your wallet valid balance is ", trueValue, "'eth ", " balance is ", toEth(balance), "'eth ")
+	fmt.Println("Your wallet valid balance is ", trueValue, "'eth ")
 }
 
 func toEth(val *big.Int) *big.Float {

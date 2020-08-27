@@ -113,6 +113,7 @@ func TestDialNode(t *testing.T) {
 	printBaseInfo(client, url)
 	PrintBalance(client, addr)
 
+	// easy access to transactions get input
 	contractBackend := backends.NewSimulatedBackend(core.GenesisAlloc{
 		addr:     {Balance: new(big.Int).SetUint64(10000000000000000000)},
 		testAddr: {Balance: big.NewInt(100000000000000)}},
@@ -130,18 +131,10 @@ func TestDialNode(t *testing.T) {
 		return
 	}
 
-	fmt.Println(" routerAddr ", routercontract.rethR.String())
+	//simulateRouter(transactOpts,contractBackend,basecontract,routercontract)
+
 	tik := new(big.Int).SetUint64(10000000000000000)
 	tik1 := new(big.Int).SetUint64(1000000000000)
-	balance, err := basecontract.mapTran.Allowance(nil, addr, routercontract.fAddr)
-	name, err := basecontract.mapTran.Name(nil)
-	fmt.Println("balance ", balance, "name", name, " ", routercontract.fAddr.String(), "err", err)
-	transactOpts.Value = new(big.Int).SetUint64(1000000000000000000)
-	fmt.Println(basecontract.mapT.String(), " ", addr.String())
-	_, err = routercontract.RTran.AddLiquidityETH(transactOpts, basecontract.mapT, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
-	fmt.Println("simulate result", err)
-	contractBackend.Commit()
-
 	input := packInput(routerAbi, "addLiquidityETH", "addLiquidityETH", basecontract.mapTR, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
 	aHash := sendRouterTransaction(client, addr, routercontract.rethR, transactOpts.Value, key, input)
 	result, _ = getResult(client, aHash)
