@@ -8,6 +8,7 @@ import (
 	"ethereum/contract/contracts/deployUniswap/weth"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	fatallog "log"
 
 	"math/big"
 	"os"
@@ -22,7 +23,7 @@ func init() {
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(false))))
 }
 
-func TestDeployUniswap(t *testing.T) {
+func TestDeployUniswapLocal(t *testing.T) {
 	contractBackend := backends.NewSimulatedBackend(core.GenesisAlloc{
 		addr:     {Balance: new(big.Int).SetUint64(10000000000000000000)},
 		testAddr: {Balance: big.NewInt(100000000000000)}},
@@ -86,7 +87,7 @@ func TestDeployUniswap(t *testing.T) {
 	contractBackend.Commit()
 }
 
-func TestNode(t *testing.T) {
+func TestNodeConnect(t *testing.T) {
 	url := "http://157.245.118.249:8545"
 	client, url := dialConn(url)
 	printBaseInfo(client, url)
@@ -106,7 +107,7 @@ func TestNode(t *testing.T) {
 	fmt.Println(nonce)
 }
 
-func TestDialNode(t *testing.T) {
+func TestDeployUniswapWithSimulate(t *testing.T) {
 	url := "http://157.245.118.249:8545"
 
 	client, url := dialConn(url)
@@ -131,13 +132,57 @@ func TestDialNode(t *testing.T) {
 		return
 	}
 
-	//simulateRouter(transactOpts,contractBackend,basecontract,routercontract)
-
 	tik := new(big.Int).SetUint64(10000000000000000)
 	tik1 := new(big.Int).SetUint64(1000000000000)
 	transactOpts.Value = new(big.Int).SetUint64(1000000000000000000)
 	input := packInput(routerAbi, "addLiquidityETH", "addLiquidityETH", basecontract.mapTR, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
 	aHash := sendRouterTransaction(client, addr, routercontract.rethR, transactOpts.Value, key, input)
 	result, _ = getResult(client, aHash)
+	fmt.Println("over result", result)
+}
+
+func TestDeployUniswapRPC(t *testing.T) {
+	url := "http://157.245.118.249:8545"
+
+	client, url := dialConn(url)
+	printBaseInfo(client, url)
+	PrintBalance(client, addr)
+
+	transactOpts := bind.NewKeyedTransactor(key)
+
+	_, wtx, _, err := weth.DeployTokene(transactOpts, client)
+	_, ftx, _, err := factory.DeployTokenf(transactOpts, client, addr)
+	_, mtx, _, err := cdc.DeployTokenc(transactOpts, client)
+
+	result, wethR := getResult(client, wtx.Hash())
+	result1, facR := getResult(client, ftx.Hash())
+	result2, mapTR := getResult(client, mtx.Hash())
+
+	if !result || !result1 || !result2 {
+		fatallog.Fatal("sendBaseContract", err)
+		return
+	}
+
+	_, routerTx, _, err := DeployToken(transactOpts, client, facR, wethR)
+	result, routerAddr := getResult(client, routerTx.Hash())
+	if !result {
+		fatallog.Fatal("sendBaseContract routerTx", err)
+		return
+	}
+
+	mapTran, err := cdc.NewTokenc(mapTR, client)
+	atx, err := mapTran.Approve(transactOpts, routerAddr, new(big.Int).SetUint64(1000000000000000000))
+	result, _ = getResult(client, atx.Hash())
+	if !result {
+		fatallog.Fatal("sendBaseContract atx", err)
+		return
+	}
+
+	tik := new(big.Int).SetUint64(10000000000000000)
+	tik1 := new(big.Int).SetUint64(1000000000000)
+	transactOpts.Value = new(big.Int).SetUint64(1000000000000000000)
+	RTran, err := NewToken(routerAddr, client)
+	aHash, _ := RTran.AddLiquidityETH(transactOpts, mapTR, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
+	result, _ = getResult(client, aHash.Hash())
 	fmt.Println("over result", result)
 }

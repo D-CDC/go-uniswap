@@ -230,7 +230,7 @@ func getResult(conn *ethclient.Client, txHash common.Hash) (bool, common.Address
 
 	count := 0
 	for {
-		time.Sleep(time.Millisecond * 200)
+		time.Sleep(time.Millisecond * 400)
 		_, isPending, err := conn.TransactionByHash(context.Background(), txHash)
 		if err != nil {
 			fatallog.Fatal(err)
