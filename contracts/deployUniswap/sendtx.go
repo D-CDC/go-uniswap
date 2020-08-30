@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	key, _ = crypto.HexToECDSA("647eeeb80193a47a02d31939af29efa006dbe6db45c8806af764c18b262bb90b")
+	key, _ = crypto.HexToECDSA("a631181819054f1567b77ebe1cf1a174b04c0e7b29c61f5448dd0b8e9c3e5147")
 	addr   = crypto.PubkeyToAddress(key.PublicKey)
 
 	key2, _      = crypto.HexToECDSA("5e6ea3e3ba8a3d8940088247eda01a0909320f729ae3afcdc5747b2ced1ac460")

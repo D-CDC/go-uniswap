@@ -87,7 +87,7 @@ func TestDeployUniswap(t *testing.T) {
 }
 
 func TestNode(t *testing.T) {
-	url := "http://165.227.99.131:8545"
+	url := "http://157.245.118.249:8545"
 	client, url := dialConn(url)
 	printBaseInfo(client, url)
 	PrintBalance(client, addr)
@@ -107,7 +107,7 @@ func TestNode(t *testing.T) {
 }
 
 func TestDialNode(t *testing.T) {
-	url := "http://165.227.99.131:8545"
+	url := "http://157.245.118.249:8545"
 
 	client, url := dialConn(url)
 	printBaseInfo(client, url)
@@ -135,6 +135,7 @@ func TestDialNode(t *testing.T) {
 
 	tik := new(big.Int).SetUint64(10000000000000000)
 	tik1 := new(big.Int).SetUint64(1000000000000)
+	transactOpts.Value = new(big.Int).SetUint64(1000000000000000000)
 	input := packInput(routerAbi, "addLiquidityETH", "addLiquidityETH", basecontract.mapTR, tik, tik, tik1, addr, new(big.Int).SetUint64(1699658290))
 	aHash := sendRouterTransaction(client, addr, routercontract.rethR, transactOpts.Value, key, input)
 	result, _ = getResult(client, aHash)
